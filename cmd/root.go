@@ -117,11 +117,12 @@ var rootCmd = &cobra.Command{
 			authorFieldsList = strings.Split(af, ",")
 		}
 
-		// Use "_" as the default replacement for special chars, but honour an
-		// explicit empty string (i.e. --replace-special "") to remove them.
-		replaceSpecialValue := "_"
+		// Only set ReplaceSpecial when the flag was explicitly passed, so that
+		// nil (the zero value) means "use default _" inside SanitizePath.
+		var replaceSpecialValue *string
 		if cmd.Flags().Changed(replaceSpecialKey) {
-			replaceSpecialValue = viper.GetString(replaceSpecialKey)
+			v := viper.GetString(replaceSpecialKey)
+			replaceSpecialValue = &v
 		}
 
 		org := organizer.NewOrganizer(

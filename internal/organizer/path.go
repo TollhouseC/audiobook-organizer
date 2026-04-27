@@ -56,8 +56,12 @@ func (o *Organizer) SanitizePath(s string) string {
 		}
 	}
 
+	specialReplacement := "_"
+	if o.config.ReplaceSpecial != nil {
+		specialReplacement = *o.config.ReplaceSpecial
+	}
 	for _, char := range invalidChars {
-		s = strings.ReplaceAll(s, char, o.config.ReplaceSpecial)
+		s = strings.ReplaceAll(s, char, specialReplacement)
 	}
 
 	// Trim leading and trailing spaces, dots, and underscores using regex

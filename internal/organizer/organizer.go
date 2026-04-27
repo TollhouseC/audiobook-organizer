@@ -27,7 +27,7 @@ type OrganizerConfig struct {
 	BaseDir             string
 	OutputDir           string
 	ReplaceSpace        string
-	ReplaceSpecial      string
+	ReplaceSpecial      *string // nil = default "_", pointer to "" = remove, pointer to "-" = use "-"
 	Verbose             bool
 	DryRun              bool
 	Undo                bool
