@@ -117,12 +117,19 @@ var rootCmd = &cobra.Command{
 			authorFieldsList = strings.Split(af, ",")
 		}
 
+		// Use "_" as the default replacement for special chars, but honour an
+		// explicit empty string (i.e. --replace-special "") to remove them.
+		replaceSpecialValue := "_"
+		if cmd.Flags().Changed(replaceSpecialKey) {
+			replaceSpecialValue = viper.GetString(replaceSpecialKey)
+		}
+
 		org := organizer.NewOrganizer(
 			&organizer.OrganizerConfig{
 				BaseDir:             inputDir,
 				OutputDir:           outputDir,
 				ReplaceSpace:        viper.GetString("replace_space"),
-				ReplaceSpecial:      viper.GetString(replaceSpecialKey),
+				ReplaceSpecial:      replaceSpecialValue,
 				Verbose:             viper.GetBool("verbose"),
 				DryRun:              viper.GetBool(dryRunKey),
 				Undo:                viper.GetBool("undo"),
@@ -206,7 +213,7 @@ func init() {
 	rootCmd.Flags().StringVar(&outputDir, "out", "", "Output directory (alias for --output)")
 	rootCmd.Flags().StringVar(&outputDir, "output", "", "Output directory (alias for --out)")
 	rootCmd.Flags().StringVar(&replaceSpace, "replace_space", "", "Character to replace spaces")
-	rootCmd.Flags().StringVar(&replaceSpecial, replaceSpecialKey, "_", "String to replace special characters (e.g. \":\" \"<\" \">\" \"|\" \"?\" \"*\") — default \"_\", use \"-\" to replace with dashes, or \"\" to remove them")
+	rootCmd.Flags().StringVar(&replaceSpecial, replaceSpecialKey, "", "String to replace special characters (e.g. \":\" \"<\" \">\" \"|\" \"?\" \"*\") — default \"_\", use \"-\" to replace with dashes, or \"\" to remove them")
 	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "Verbose output")
 	rootCmd.Flags().BoolVar(&dryRun, dryRunKey, false, "Show what would happen without making changes")
 	rootCmd.Flags().BoolVar(&undo, "undo", false, "Restore files to their original locations")
