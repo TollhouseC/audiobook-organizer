@@ -1,33 +1,8 @@
 name: Release
 on:
-  push:
-    tags:
-      - 'v*'
-permissions:
-  contents: write
-
+  workflow_dispatch: # manual trigger only — GoReleaser config points to upstream repo
 jobs:
-  release:
+  noop:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-          cache: true
-          cache-dependency-path: go.sum
-
-      - name: GoReleaser
-        uses: goreleaser/goreleaser-action@v6
-        timeout-minutes: 10
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: echo "Release workflow disabled on fork"
