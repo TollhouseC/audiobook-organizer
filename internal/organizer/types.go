@@ -89,8 +89,18 @@ func (m *Metadata) GetFirstAuthor(defaultValue string) string {
 	return defaultValue
 }
 
+// GetValidSeriesEntries returns all non-empty, non-invalid series entries in order.
+func (m *Metadata) GetValidSeriesEntries() []string {
+	var entries []string
+	for _, s := range m.Series {
+		if s != "" && s != InvalidSeriesValue {
+			entries = append(entries, s)
+		}
+	}
+	return entries
+}
+
 // GetFullValidSeries returns the first valid series name with series number intact
-// Sorts the series array to ensure consistent series choice
 func (m *Metadata) GetFullValidSeries() string {
 	for _, s := range m.Series {
 		if s != "" && s != InvalidSeriesValue {

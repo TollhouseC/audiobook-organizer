@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -29,6 +30,34 @@ func (o *Organizer) PromptForDirectoryRemoval(dir string, isParent bool) bool {
 
 	response = strings.TrimSpace(strings.ToLower(response))
 	return response == "y" || response == "yes"
+}
+
+// PromptForSeriesSelection asks the user to choose one series from multiple valid entries.
+// Returns the selected series string, defaulting to the first entry on invalid input.
+func (o *Organizer) PromptForSeriesSelection(title string, entries []string) string {
+	fmt.Println(RenderWarning(fmt.Sprintf("\n📚 Multiple series found for \"%s\":", title)))
+	for i, s := range entries {
+		fmt.Printf("  %d) %s\n", i+1, RenderHighlight(s))
+	}
+	fmt.Print(RenderPromptIcon(fmt.Sprintf("❓ Choose series [1-%d, default 1]: ", len(entries))))
+
+	reader := bufio.NewReader(os.Stdin)
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		return entries[0]
+	}
+
+	response = strings.TrimSpace(response)
+	if response == "" {
+		return entries[0]
+	}
+
+	idx, err := strconv.Atoi(response)
+	if err != nil || idx < 1 || idx > len(entries) {
+		fmt.Println(RenderError("Invalid choice, using first series."))
+		return entries[0]
+	}
+	return entries[idx-1]
 }
 
 // PromptForConfirmation asks the user for confirmation before moving files.

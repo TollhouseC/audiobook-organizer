@@ -349,6 +349,8 @@ func (o *Organizer) OrganizeAudiobook(sourcePath string, provider MetadataProvid
 		return err
 	}
 
+	o.resolveSeriesIfMultiple(&metadata)
+
 	targetPath := o.layoutCalculator.CalculateTargetPath(metadata)
 
 	if o.isAlreadyInCorrectLocation(sourcePath, targetPath) {
@@ -735,6 +737,18 @@ func getProviderTypeDisplay(provider MetadataProvider) (string, string) {
 	default:
 		return "📄", "Metadata provider"
 	}
+}
+
+// resolveSeriesIfMultiple prompts the user to choose a series when metadata contains
+// more than one valid series entry. The chosen series replaces the full Series slice
+// so all downstream path calculations use a single consistent value.
+func (o *Organizer) resolveSeriesIfMultiple(metadata *Metadata) {
+	entries := metadata.GetValidSeriesEntries()
+	if len(entries) <= 1 {
+		return
+	}
+	chosen := o.PromptForSeriesSelection(metadata.Title, entries)
+	metadata.Series = []string{chosen}
 }
 
 // promptForMoveConfirmation asks the user for confirmation before moving files.
