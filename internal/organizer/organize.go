@@ -352,6 +352,10 @@ func (o *Organizer) OrganizeAudiobook(sourcePath string, provider MetadataProvid
 	targetPath := o.layoutCalculator.CalculateTargetPath(metadata)
 
 	if o.isAlreadyInCorrectLocation(sourcePath, targetPath) {
+		// Directory is correct, but we still need to rename files when requested
+		if o.config.RenameFiles {
+			return o.executeMove(sourcePath, targetPath, &metadata)
+		}
 		return nil
 	}
 
