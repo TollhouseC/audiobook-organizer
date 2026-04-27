@@ -13,19 +13,21 @@ import (
 
 // Constants for field names to avoid duplication
 const ( // This makes sonar pass
-	titleFieldKey      = "title-field"
-	seriesFieldKey     = "series-field"
-	authorFieldsKey    = "author-fields"
-	trackFieldKey      = "track-field"
-	useEmbeddedMetaKey = "use-embedded-metadata"
-	removeEmptyKey     = "remove-empty"
-	dryRunKey          = "dry-run"
+	titleFieldKey       = "title-field"
+	seriesFieldKey      = "series-field"
+	authorFieldsKey     = "author-fields"
+	trackFieldKey       = "track-field"
+	useEmbeddedMetaKey  = "use-embedded-metadata"
+	removeEmptyKey      = "remove-empty"
+	dryRunKey           = "dry-run"
+	replaceSpecialKey   = "replace-special"
 )
 
 var (
 	inputDir            string // Combined input from --dir and --input
 	outputDir           string // Combined output from --out and --output
 	replaceSpace        string
+	replaceSpecial      string
 	verbose             bool
 	dryRun              bool
 	undo                bool
@@ -51,6 +53,7 @@ var envAliases = map[string][]string{
 	"out":              {"AO_OUT", "AO_OUTPUT", "AUDIOBOOK_ORGANIZER_OUT", "AUDIOBOOK_ORGANIZER_OUTPUT"},
 	"output":           {"AO_OUT", "AO_OUTPUT", "AUDIOBOOK_ORGANIZER_OUT", "AUDIOBOOK_ORGANIZER_OUTPUT"},
 	"replace_space":    {"AO_REPLACE_SPACE", "AUDIOBOOK_ORGANIZER_REPLACE_SPACE"},
+	replaceSpecialKey: {"AO_REPLACE_SPECIAL", "AUDIOBOOK_ORGANIZER_REPLACE_SPECIAL"},
 	"verbose":          {"AO_VERBOSE", "AUDIOBOOK_ORGANIZER_VERBOSE"},
 	dryRunKey:          {"AO_DRY_RUN", "AUDIOBOOK_ORGANIZER_DRY_RUN"},
 	"undo":             {"AO_UNDO", "AUDIOBOOK_ORGANIZER_UNDO"},
@@ -119,6 +122,7 @@ var rootCmd = &cobra.Command{
 				BaseDir:             inputDir,
 				OutputDir:           outputDir,
 				ReplaceSpace:        viper.GetString("replace_space"),
+				ReplaceSpecial:      viper.GetString(replaceSpecialKey),
 				Verbose:             viper.GetBool("verbose"),
 				DryRun:              viper.GetBool(dryRunKey),
 				Undo:                viper.GetBool("undo"),
@@ -202,6 +206,7 @@ func init() {
 	rootCmd.Flags().StringVar(&outputDir, "out", "", "Output directory (alias for --output)")
 	rootCmd.Flags().StringVar(&outputDir, "output", "", "Output directory (alias for --out)")
 	rootCmd.Flags().StringVar(&replaceSpace, "replace_space", "", "Character to replace spaces")
+	rootCmd.Flags().StringVar(&replaceSpecial, replaceSpecialKey, "_", "String to replace special characters (e.g. \":\" \"<\" \">\" \"|\" \"?\" \"*\") — default \"_\", use \"-\" to replace with dashes, or \"\" to remove them")
 	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "Verbose output")
 	rootCmd.Flags().BoolVar(&dryRun, dryRunKey, false, "Show what would happen without making changes")
 	rootCmd.Flags().BoolVar(&undo, "undo", false, "Restore files to their original locations")
@@ -222,6 +227,7 @@ func init() {
 	viper.BindPFlag("out", rootCmd.Flags().Lookup("out"))
 	viper.BindPFlag("output", rootCmd.Flags().Lookup("output"))
 	viper.BindPFlag("replace_space", rootCmd.Flags().Lookup("replace_space"))
+	viper.BindPFlag(replaceSpecialKey, rootCmd.Flags().Lookup(replaceSpecialKey))
 	viper.BindPFlag("verbose", rootCmd.Flags().Lookup("verbose"))
 	viper.BindPFlag(dryRunKey, rootCmd.Flags().Lookup(dryRunKey))
 	viper.BindPFlag("undo", rootCmd.Flags().Lookup("undo"))

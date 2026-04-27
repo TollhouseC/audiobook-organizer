@@ -86,6 +86,61 @@ func TestSanitizePath(t *testing.T) {
 	}
 }
 
+func TestSanitizePathReplaceSpecial(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          string
+		replaceSpecial string
+		want           string
+	}{
+		{
+			name:           "replace_colon_with_dash",
+			input:          "The Expanse: Leviathan Wakes",
+			replaceSpecial: "-",
+			want:           "The Expanse- Leviathan Wakes",
+		},
+		{
+			name:           "remove_special_chars",
+			input:          "Book: Title? (Part 1)",
+			replaceSpecial: "",
+			want:           "Book Title (Part 1)",
+		},
+		{
+			name:           "replace_multiple_special_chars",
+			input:          "Author*With|Invalid<Characters>",
+			replaceSpecial: "-",
+			want:           "Author-With-Invalid-Characters",
+		},
+		{
+			name:           "default_underscore_behavior",
+			input:          "Book: Title?",
+			replaceSpecial: "_",
+			want:           "Book_ Title",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &OrganizerConfig{
+				ReplaceSpecial: tt.replaceSpecial,
+			}
+			// Skip NewOrganizer default injection for empty-string test
+			org := &Organizer{config: *config}
+			if tt.replaceSpecial == "" {
+				org.config.ReplaceSpecial = ""
+			} else {
+				org.config.ReplaceSpecial = tt.replaceSpecial
+			}
+
+			got := org.SanitizePath(tt.input)
+			if got != tt.want {
+				t.Errorf("SanitizePath(%q) with ReplaceSpecial=%q = %q, want %q",
+					tt.input, tt.replaceSpecial, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestCleanSeriesName(t *testing.T) {
 	tests := []struct {
 		name  string

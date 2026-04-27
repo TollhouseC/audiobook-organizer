@@ -33,6 +33,7 @@ var SupportedAudioExtensions = map[string]bool{
 // On Windows, it replaces '<', '>', ':', '"', '/', '\', '|', '?', '*' with underscores.
 // On Unix systems, it replaces '/' and other problematic characters with underscores.
 // If ReplaceSpace is set, it also replaces spaces with the specified character.
+// If ReplaceSpecial is set, special/problematic characters are replaced with that string instead of "_".
 func (o *Organizer) SanitizePath(s string) string {
 	// First replace spaces if configured
 	if o.config.ReplaceSpace != "" {
@@ -55,9 +56,8 @@ func (o *Organizer) SanitizePath(s string) string {
 		}
 	}
 
-	// Replace invalid characters with underscore
 	for _, char := range invalidChars {
-		s = strings.ReplaceAll(s, char, "_")
+		s = strings.ReplaceAll(s, char, o.config.ReplaceSpecial)
 	}
 
 	// Trim leading and trailing spaces, dots, and underscores using regex

@@ -27,6 +27,7 @@ type OrganizerConfig struct {
 	BaseDir             string
 	OutputDir           string
 	ReplaceSpace        string
+	ReplaceSpecial      string
 	Verbose             bool
 	DryRun              bool
 	Undo                bool
@@ -164,6 +165,9 @@ type Organizer struct {
 
 // NewOrganizer creates a new Organizer with the provided configuration
 func NewOrganizer(config *OrganizerConfig) *Organizer {
+	if config.ReplaceSpecial == "" {
+		config.ReplaceSpecial = "_"
+	}
 	org := &Organizer{
 		config:  *config,
 		fileOps: NewFileOps(config.DryRun),
