@@ -18,7 +18,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 FROM --platform=$TARGETPLATFORM alpine:latest
 
-WORKDIR /app
-COPY --from=builder /app/audiobook-organizer .
+# Put the binary on PATH so it can be called by name from the console
+COPY --from=builder /app/audiobook-organizer /usr/local/bin/audiobook-organizer
 
-ENTRYPOINT ["/app/audiobook-organizer"]
+# Keep the container alive so Unraid's Console button works
+CMD ["tail", "-f", "/dev/null"]
