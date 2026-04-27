@@ -323,6 +323,12 @@ type Summary struct {
 }
 
 type MoveSummary struct {
+	From        string           `json:"from"`
+	To          string           `json:"to"`
+	FileRenames []FileRenameSummary `json:"file_renames,omitempty"`
+}
+
+type FileRenameSummary struct {
 	From string `json:"from"`
 	To   string `json:"to"`
 }

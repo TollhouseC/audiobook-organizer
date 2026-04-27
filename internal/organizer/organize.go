@@ -1010,6 +1010,17 @@ func (o *Organizer) processDirectoryFiles(entries []os.DirEntry, sourcePath, tar
 		targetFullPath := filepath.Join(targetPath, targetName)
 		fileNames = append(fileNames, targetName)
 
+		// Track file renames in the summary when the filename actually changes
+		if entry.Name() != targetName {
+			if len(o.summary.Moves) > 0 {
+				last := &o.summary.Moves[len(o.summary.Moves)-1]
+				last.FileRenames = append(last.FileRenames, FileRenameSummary{
+					From: entry.Name(),
+					To:   targetName,
+				})
+			}
+		}
+
 		if o.config.Verbose || o.config.DryRun {
 			message := o.formatFileMove(sourceName, targetFullPath, o.config.DryRun)
 			fmt.Println(message)

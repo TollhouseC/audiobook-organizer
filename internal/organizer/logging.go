@@ -112,7 +112,11 @@ func (o *Organizer) printSummary(startTime time.Time) {
 	PrintCyan("\n🔄 Moves planned/executed: %d", len(o.summary.Moves))
 	for _, move := range o.summary.Moves {
 		PrintBase("  From: %s", move.From)
-		PrintBase("  To: %s\n", move.To)
+		PrintBase("  To: %s", move.To)
+		for _, fr := range move.FileRenames {
+			PrintBase("    📄 %s  →  %s", fr.From, fr.To)
+		}
+		PrintBase("")
 	}
 
 	// Print information about removed empty directories
