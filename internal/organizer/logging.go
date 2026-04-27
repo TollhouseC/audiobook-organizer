@@ -27,12 +27,14 @@ func SetForceDarkMode(enabled bool) {
 }
 
 func (o *Organizer) saveLog() error {
-	logPath := o.GetLogPath()
+	if o.currentLogPath == "" {
+		o.initCurrentLogPath()
+	}
 	data, err := json.MarshalIndent(o.logEntries, "", "  ")
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(logPath, data, 0644)
+	return os.WriteFile(o.currentLogPath, data, 0644)
 }
 
 func (o *Organizer) findLatestLogPath() (string, error) {

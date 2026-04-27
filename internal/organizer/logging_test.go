@@ -53,14 +53,14 @@ func TestLogFileCreation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Check log file exists
-	logPath := filepath.Join(tempDir, LogFileName)
-	if _, err := os.Stat(logPath); os.IsNotExist(err) {
+	// Check a dated undo log was created
+	logFiles, _ := filepath.Glob(filepath.Join(tempDir, "undo-*.json"))
+	if len(logFiles) == 0 {
 		t.Error("log file was not created")
 	}
 
 	// Check log content
-	logData, err := os.ReadFile(logPath)
+	logData, err := os.ReadFile(logFiles[0])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,9 +173,9 @@ func TestUndoMoves(t *testing.T) {
 		t.Error("restored file contents do not match original")
 	}
 
-	// Verify log file was removed
-	logPath := filepath.Join(tempDir, LogFileName)
-	if _, err := os.Stat(logPath); !os.IsNotExist(err) {
+	// Verify the undo log was removed after Undo
+	logFiles, _ := filepath.Glob(filepath.Join(tempDir, "undo-*.json"))
+	if len(logFiles) != 0 {
 		t.Error("log file was not removed after Undo")
 	}
 }
@@ -228,14 +228,14 @@ func TestLogFileInOutputDirectory(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Check log file is in output directory
-	logPath := filepath.Join(outputDir, LogFileName)
-	if _, err := os.Stat(logPath); os.IsNotExist(err) {
+	// Check a dated undo log was created in the output directory
+	logFiles, _ := filepath.Glob(filepath.Join(outputDir, "undo-*.json"))
+	if len(logFiles) == 0 {
 		t.Error("log file was not created in output directory")
 	}
 
 	// Verify log contents
-	logData, err := os.ReadFile(logPath)
+	logData, err := os.ReadFile(logFiles[0])
 	if err != nil {
 		t.Fatal(err)
 	}

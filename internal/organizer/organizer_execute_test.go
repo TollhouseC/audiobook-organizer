@@ -189,9 +189,10 @@ func TestOrganizerExecuteWithOutput(t *testing.T) {
 	// GetLogPath() should return a path based on the resolved output directory
 	actualLogPath := org.GetLogPath()
 
-	// The log path should be in the output directory and end with the correct filename
-	if !strings.HasSuffix(actualLogPath, LogFileName) {
-		t.Errorf("Expected log path to end with %q, got %q", LogFileName, actualLogPath)
+	// The log path should be a dated undo-*.json file
+	base := filepath.Base(actualLogPath)
+	if !strings.HasPrefix(base, "undo-") || !strings.HasSuffix(base, ".json") {
+		t.Errorf("Expected log path to be a dated undo-*.json file, got %q", actualLogPath)
 	}
 
 	// The log path should be in some form of the output directory
@@ -209,8 +210,8 @@ func TestOrganizerExecuteUndo(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Create a fake log file for undo (using the correct format)
-	logPath := filepath.Join(tempDir, LogFileName)
+	// Create a fake dated undo log for the undo operation to find
+	logPath := filepath.Join(tempDir, "undo-20260101-120000.json")
 	logContent := `[]` // Empty array of log entries
 	if err := os.WriteFile(logPath, []byte(logContent), 0644); err != nil {
 		t.Fatalf("Failed to create log file: %v", err)
