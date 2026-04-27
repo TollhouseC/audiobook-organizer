@@ -1,0 +1,13 @@
+services:
+  audiobook-organizer:
+    image: ghcr.io/tollhousec/audiobook-organizer:latest
+    container_name: audiobook-organizer
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+      - /mnt/user/Audiobooks/Audio:/books
+      - /mnt/user/appdata/audiobook-organizer:/config
+    environment:
+      - AO_DIR=/books
+      - AO_CONFIG_DIR=/config

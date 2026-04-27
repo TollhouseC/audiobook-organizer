@@ -7,13 +7,8 @@ import (
 )
 
 // GetSeriesChoicesPath returns the path to the series choices persistence file.
-// The file lives in the base (or output) directory so it survives across Docker runs.
 func (o *Organizer) GetSeriesChoicesPath() string {
-	base := o.config.BaseDir
-	if o.config.OutputDir != "" {
-		base = o.config.OutputDir
-	}
-	return filepath.Join(base, SeriesChoicesFileName)
+	return filepath.Join(o.getConfigDir(), SeriesChoicesFileName)
 }
 
 // loadSeriesChoices reads previously saved series selections from disk.

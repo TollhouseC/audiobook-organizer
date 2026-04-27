@@ -22,11 +22,13 @@ const ( // This makes sonar pass
 	dryRunKey           = "dry-run"
 	replaceSpecialKey   = "replace-special"
 	renameFilesKey      = "rename-files"
+	configDirKey        = "config-dir"
 )
 
 var (
 	inputDir            string // Combined input from --dir and --input
 	outputDir           string // Combined output from --out and --output
+	configDir           string
 	replaceSpace        string
 	replaceSpecial      string
 	renameFiles         bool
@@ -57,6 +59,7 @@ var envAliases = map[string][]string{
 	"replace_space":    {"AO_REPLACE_SPACE", "AUDIOBOOK_ORGANIZER_REPLACE_SPACE"},
 	replaceSpecialKey: {"AO_REPLACE_SPECIAL", "AUDIOBOOK_ORGANIZER_REPLACE_SPECIAL"},
 	renameFilesKey:    {"AO_RENAME_FILES", "AUDIOBOOK_ORGANIZER_RENAME_FILES"},
+	configDirKey:      {"AO_CONFIG_DIR", "AUDIOBOOK_ORGANIZER_CONFIG_DIR"},
 	"verbose":          {"AO_VERBOSE", "AUDIOBOOK_ORGANIZER_VERBOSE"},
 	dryRunKey:          {"AO_DRY_RUN", "AUDIOBOOK_ORGANIZER_DRY_RUN"},
 	"undo":             {"AO_UNDO", "AUDIOBOOK_ORGANIZER_UNDO"},
@@ -132,6 +135,7 @@ var rootCmd = &cobra.Command{
 			&organizer.OrganizerConfig{
 				BaseDir:             inputDir,
 				OutputDir:           outputDir,
+				ConfigDir:           viper.GetString(configDirKey),
 				ReplaceSpace:        viper.GetString("replace_space"),
 				ReplaceSpecial:      replaceSpecialValue,
 				RenameFiles:         viper.GetBool(renameFilesKey),
@@ -217,6 +221,7 @@ func init() {
 	rootCmd.Flags().StringVar(&inputDir, "input", "", "Base directory to scan (alias for --dir)")
 	rootCmd.Flags().StringVar(&outputDir, "out", "", "Output directory (alias for --output)")
 	rootCmd.Flags().StringVar(&outputDir, "output", "", "Output directory (alias for --out)")
+	rootCmd.Flags().StringVar(&configDir, configDirKey, "", "Directory for state files (undo logs, series choices); defaults to --dir")
 	rootCmd.Flags().StringVar(&replaceSpace, "replace_space", "", "Character to replace spaces")
 	rootCmd.Flags().StringVar(&replaceSpecial, replaceSpecialKey, "", "String to replace special characters (e.g. \":\" \"<\" \">\" \"|\" \"?\" \"*\") — default \"_\", use \"-\" to replace with dashes, or \"\" to remove them")
 	rootCmd.Flags().BoolVar(&renameFiles, renameFilesKey, false, "Rename audio files to the sanitized title from metadata")
@@ -242,6 +247,7 @@ func init() {
 	viper.BindPFlag("replace_space", rootCmd.Flags().Lookup("replace_space"))
 	viper.BindPFlag(replaceSpecialKey, rootCmd.Flags().Lookup(replaceSpecialKey))
 	viper.BindPFlag(renameFilesKey, rootCmd.Flags().Lookup(renameFilesKey))
+	viper.BindPFlag(configDirKey, rootCmd.Flags().Lookup(configDirKey))
 	viper.BindPFlag("verbose", rootCmd.Flags().Lookup("verbose"))
 	viper.BindPFlag(dryRunKey, rootCmd.Flags().Lookup(dryRunKey))
 	viper.BindPFlag("undo", rootCmd.Flags().Lookup("undo"))

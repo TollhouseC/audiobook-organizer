@@ -27,6 +27,7 @@ const (
 type OrganizerConfig struct {
 	BaseDir             string
 	OutputDir           string
+	ConfigDir           string  // directory for state files (undo logs, series choices); defaults to BaseDir
 	ReplaceSpace        string
 	ReplaceSpecial      *string // nil = default "_", pointer to "" = remove, pointer to "-" = use "-"
 	RenameFiles         bool    // rename audio files to sanitized metadata title
@@ -164,6 +165,7 @@ type Organizer struct {
 	fileOps          *FileOps
 	layoutCalculator *LayoutCalculator
 	seriesChoices    map[string]string // book title → chosen series, persisted to disk
+	currentLogPath   string            // dated log path for this run, set in Execute
 }
 
 // NewOrganizer creates a new Organizer with the provided configuration
@@ -187,13 +189,53 @@ func NewOrganizer(config *OrganizerConfig) *Organizer {
 	return org
 }
 
-// GetLogPath returns the path where operation logs are stored
-func (o *Organizer) GetLogPath() string {
-	logBase := o.config.BaseDir
-	if o.config.OutputDir != "" {
-		logBase = o.config.OutputDir
+// getConfigDir returns the directory used for state files (undo logs, series choices).
+func (o *Organizer) getConfigDir() string {
+	if o.config.ConfigDir != "" {
+		return o.config.ConfigDir
 	}
-	return filepath.Join(logBase, LogFileName)
+	if o.config.OutputDir != "" {
+		return o.config.OutputDir
+	}
+	return o.config.BaseDir
+}
+
+// GetLogPath returns the dated log path for the current run.
+func (o *Organizer) GetLogPath() string {
+	return o.currentLogPath
+}
+
+// initCurrentLogPath creates the config directory and sets a timestamped log path for this run.
+func (o *Organizer) initCurrentLogPath() {
+	configDir := o.getConfigDir()
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		PrintYellow("⚠️  Warning: couldn't create config directory %s: %v", configDir, err)
+	}
+	timestamp := time.Now().Format("20060102-150405")
+	o.currentLogPath = filepath.Join(configDir, fmt.Sprintf("undo-%s.json", timestamp))
+}
+
+// rotateLogFiles keeps only the 20 most recent undo-*.json files in the config dir.
+func (o *Organizer) rotateLogFiles() {
+	const maxLogs = 20
+	configDir := o.getConfigDir()
+	entries, err := os.ReadDir(configDir)
+	if err != nil {
+		return
+	}
+
+	var logs []string
+	for _, e := range entries {
+		if !e.IsDir() && strings.HasPrefix(e.Name(), "undo-") && strings.HasSuffix(e.Name(), ".json") {
+			logs = append(logs, filepath.Join(configDir, e.Name()))
+		}
+	}
+
+	sort.Strings(logs) // timestamp names sort chronologically
+	for len(logs) > maxLogs {
+		os.Remove(logs[0])
+		logs = logs[1:]
+	}
 }
 
 // Execute runs the main organization process
@@ -235,6 +277,7 @@ func (o *Organizer) Execute() error {
 		return o.OrganizeSingleFile(o.config.BaseDir, nil)
 	}
 
+	o.initCurrentLogPath()
 	o.loadSeriesChoices()
 
 	if o.config.Undo {
@@ -258,6 +301,7 @@ func (o *Organizer) Execute() error {
 		if err := o.saveLog(); err != nil {
 			return fmt.Errorf("error saving log: %v", err)
 		}
+		o.rotateLogFiles()
 	}
 
 	// Remove empty directories after all moves are complete

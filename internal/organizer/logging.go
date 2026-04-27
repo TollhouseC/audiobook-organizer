@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -34,8 +35,30 @@ func (o *Organizer) saveLog() error {
 	return os.WriteFile(logPath, data, 0644)
 }
 
+func (o *Organizer) findLatestLogPath() (string, error) {
+	configDir := o.getConfigDir()
+	entries, err := os.ReadDir(configDir)
+	if err != nil {
+		return "", fmt.Errorf("cannot read config directory %s: %v", configDir, err)
+	}
+	var logs []string
+	for _, e := range entries {
+		if !e.IsDir() && strings.HasPrefix(e.Name(), "undo-") && strings.HasSuffix(e.Name(), ".json") {
+			logs = append(logs, filepath.Join(configDir, e.Name()))
+		}
+	}
+	if len(logs) == 0 {
+		return "", fmt.Errorf("no undo log files found in %s", configDir)
+	}
+	sort.Strings(logs)
+	return logs[len(logs)-1], nil
+}
+
 func (o *Organizer) undoMoves() error {
-	logPath := o.GetLogPath()
+	logPath, err := o.findLatestLogPath()
+	if err != nil {
+		return err
+	}
 	data, err := os.ReadFile(logPath)
 	if err != nil {
 		return fmt.Errorf("no log file found at %s", logPath)
