@@ -1037,11 +1037,12 @@ func (o *Organizer) processDirectoryFiles(entries []os.DirEntry, sourcePath, tar
 }
 
 // calculateFileTargetName determines the target filename, adding track prefixes when appropriate.
-// When RenameFiles is enabled the file is renamed to the sanitized metadata title.
+// When RenameFiles is enabled, audio files are renamed to the sanitized metadata title;
+// non-audio files (cover art, metadata.json, etc.) keep their original names.
 func (o *Organizer) calculateFileTargetName(fileName string, dirMetadata *Metadata) string {
-	if o.config.RenameFiles && dirMetadata != nil && dirMetadata.Title != "" {
-		ext := filepath.Ext(fileName)
-		base := o.SanitizePath(dirMetadata.Title) + ext
+	ext := strings.ToLower(filepath.Ext(fileName))
+	if o.config.RenameFiles && dirMetadata != nil && dirMetadata.Title != "" && IsSupportedAudioFile(ext) {
+		base := o.SanitizePath(dirMetadata.Title) + filepath.Ext(fileName)
 		if dirMetadata.TrackNumber > 0 {
 			return fmt.Sprintf(TrackPrefixFormat, dirMetadata.TrackNumber) + base
 		}
