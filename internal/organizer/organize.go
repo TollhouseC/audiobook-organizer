@@ -743,9 +743,6 @@ func getProviderTypeDisplay(provider MetadataProvider) (string, string) {
 // more than one valid series entry. The chosen series replaces the full Series slice
 // so all downstream path calculations use a single consistent value.
 func (o *Organizer) resolveSeriesIfMultiple(metadata *Metadata) {
-	if len(metadata.Series) > 1 {
-		fmt.Fprintf(os.Stderr, "[DEBUG] %q raw series (%d): %v\n", metadata.Title, len(metadata.Series), metadata.Series)
-	}
 	entries := metadata.GetValidSeriesEntries()
 	if len(entries) <= 1 {
 		return
