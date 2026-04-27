@@ -21,6 +21,7 @@ const ( // This makes sonar pass
 	removeEmptyKey      = "remove-empty"
 	dryRunKey           = "dry-run"
 	replaceSpecialKey   = "replace-special"
+	renameFilesKey      = "rename-files"
 )
 
 var (
@@ -28,6 +29,7 @@ var (
 	outputDir           string // Combined output from --out and --output
 	replaceSpace        string
 	replaceSpecial      string
+	renameFiles         bool
 	verbose             bool
 	dryRun              bool
 	undo                bool
@@ -54,6 +56,7 @@ var envAliases = map[string][]string{
 	"output":           {"AO_OUT", "AO_OUTPUT", "AUDIOBOOK_ORGANIZER_OUT", "AUDIOBOOK_ORGANIZER_OUTPUT"},
 	"replace_space":    {"AO_REPLACE_SPACE", "AUDIOBOOK_ORGANIZER_REPLACE_SPACE"},
 	replaceSpecialKey: {"AO_REPLACE_SPECIAL", "AUDIOBOOK_ORGANIZER_REPLACE_SPECIAL"},
+	renameFilesKey:    {"AO_RENAME_FILES", "AUDIOBOOK_ORGANIZER_RENAME_FILES"},
 	"verbose":          {"AO_VERBOSE", "AUDIOBOOK_ORGANIZER_VERBOSE"},
 	dryRunKey:          {"AO_DRY_RUN", "AUDIOBOOK_ORGANIZER_DRY_RUN"},
 	"undo":             {"AO_UNDO", "AUDIOBOOK_ORGANIZER_UNDO"},
@@ -131,6 +134,7 @@ var rootCmd = &cobra.Command{
 				OutputDir:           outputDir,
 				ReplaceSpace:        viper.GetString("replace_space"),
 				ReplaceSpecial:      replaceSpecialValue,
+				RenameFiles:         viper.GetBool(renameFilesKey),
 				Verbose:             viper.GetBool("verbose"),
 				DryRun:              viper.GetBool(dryRunKey),
 				Undo:                viper.GetBool("undo"),
@@ -215,6 +219,7 @@ func init() {
 	rootCmd.Flags().StringVar(&outputDir, "output", "", "Output directory (alias for --out)")
 	rootCmd.Flags().StringVar(&replaceSpace, "replace_space", "", "Character to replace spaces")
 	rootCmd.Flags().StringVar(&replaceSpecial, replaceSpecialKey, "", "String to replace special characters (e.g. \":\" \"<\" \">\" \"|\" \"?\" \"*\") — default \"_\", use \"-\" to replace with dashes, or \"\" to remove them")
+	rootCmd.Flags().BoolVar(&renameFiles, renameFilesKey, false, "Rename audio files to the sanitized title from metadata")
 	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "Verbose output")
 	rootCmd.Flags().BoolVar(&dryRun, dryRunKey, false, "Show what would happen without making changes")
 	rootCmd.Flags().BoolVar(&undo, "undo", false, "Restore files to their original locations")
@@ -236,6 +241,7 @@ func init() {
 	viper.BindPFlag("output", rootCmd.Flags().Lookup("output"))
 	viper.BindPFlag("replace_space", rootCmd.Flags().Lookup("replace_space"))
 	viper.BindPFlag(replaceSpecialKey, rootCmd.Flags().Lookup(replaceSpecialKey))
+	viper.BindPFlag(renameFilesKey, rootCmd.Flags().Lookup(renameFilesKey))
 	viper.BindPFlag("verbose", rootCmd.Flags().Lookup("verbose"))
 	viper.BindPFlag(dryRunKey, rootCmd.Flags().Lookup(dryRunKey))
 	viper.BindPFlag("undo", rootCmd.Flags().Lookup("undo"))

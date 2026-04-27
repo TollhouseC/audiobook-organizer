@@ -454,6 +454,14 @@ func (o *Organizer) OrganizeSingleFile(filePath string, provider MetadataProvide
 // including both directory and filename components.
 func (o *Organizer) calculateSingleFileTargetPath(filePath string, metadata Metadata) string {
 	targetDir := o.calculateSingleFileTargetDir(filePath, metadata)
+	if o.config.RenameFiles && metadata.Title != "" {
+		ext := filepath.Ext(filePath)
+		base := o.SanitizePath(metadata.Title) + ext
+		if metadata.TrackNumber > 0 {
+			return filepath.Join(targetDir, fmt.Sprintf(TrackPrefixFormat, metadata.TrackNumber)+base)
+		}
+		return filepath.Join(targetDir, base)
+	}
 	targetFileName := AddTrackPrefix(filepath.Base(filePath), metadata.TrackNumber)
 	return filepath.Join(targetDir, targetFileName)
 }
@@ -1018,19 +1026,23 @@ func (o *Organizer) processDirectoryFiles(entries []os.DirEntry, sourcePath, tar
 }
 
 // calculateFileTargetName determines the target filename, adding track prefixes when appropriate.
+// When RenameFiles is enabled the file is renamed to the sanitized metadata title.
 func (o *Organizer) calculateFileTargetName(fileName string, dirMetadata *Metadata) string {
-	// Use the FilenameNormalizer for consistent processing
-	normalizer := NewFilenameNormalizer()
+	if o.config.RenameFiles && dirMetadata != nil && dirMetadata.Title != "" {
+		ext := filepath.Ext(fileName)
+		base := o.SanitizePath(dirMetadata.Title) + ext
+		if dirMetadata.TrackNumber > 0 {
+			return fmt.Sprintf(TrackPrefixFormat, dirMetadata.TrackNumber) + base
+		}
+		return base
+	}
 
-	// Add track prefix if available in metadata
+	normalizer := NewFilenameNormalizer()
 	if dirMetadata != nil && dirMetadata.TrackNumber > 0 {
 		normalizer = normalizer.WithTrackPrefix(dirMetadata.TrackNumber)
 	}
-
-	// Apply space replacement if configured
 	if o.config.ReplaceSpace != "" {
 		normalizer = normalizer.WithSpaceReplacement(o.config.ReplaceSpace)
 	}
-
 	return normalizer.Normalize(fileName)
 }

@@ -28,6 +28,7 @@ type OrganizerConfig struct {
 	OutputDir           string
 	ReplaceSpace        string
 	ReplaceSpecial      *string // nil = default "_", pointer to "" = remove, pointer to "-" = use "-"
+	RenameFiles         bool    // rename audio files to sanitized metadata title
 	Verbose             bool
 	DryRun              bool
 	Undo                bool
