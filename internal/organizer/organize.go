@@ -352,8 +352,8 @@ func (o *Organizer) OrganizeAudiobook(sourcePath string, provider MetadataProvid
 	targetPath := o.layoutCalculator.CalculateTargetPath(metadata)
 
 	if o.isAlreadyInCorrectLocation(sourcePath, targetPath) {
-		// Directory is correct, but we still need to rename files when requested
-		if o.config.RenameFiles {
+		// Directory is correct, but we may still need to rename audio files
+		if o.config.RenameFiles && o.anyAudioFilesNeedRename(sourcePath, &metadata) {
 			return o.executeMove(sourcePath, targetPath, &metadata)
 		}
 		return nil
@@ -390,6 +390,27 @@ func (o *Organizer) isAlreadyInCorrectLocation(sourcePath, targetPath string) bo
 			PrintGreen("✅ Book already in correct location: %s", cleanSourcePath)
 		}
 		return true
+	}
+	return false
+}
+
+// anyAudioFilesNeedRename returns true if at least one audio file in dir would
+// be renamed by calculateFileTargetName (used to skip no-op executeMove calls).
+func (o *Organizer) anyAudioFilesNeedRename(dir string, metadata *Metadata) bool {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return false
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		ext := strings.ToLower(filepath.Ext(entry.Name()))
+		if IsSupportedAudioFile(ext) {
+			if entry.Name() != o.calculateFileTargetName(entry.Name(), metadata) {
+				return true
+			}
+		}
 	}
 	return false
 }
