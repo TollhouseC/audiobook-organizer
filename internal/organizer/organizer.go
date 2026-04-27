@@ -14,12 +14,13 @@ import (
 
 // Constants
 const (
-	LogFileName        = ".abook-org.log"
-	TestBookDirName    = "test_book"
-	MetadataFileName   = "metadata.json"
-	TestAudioFileName  = "audio.mp3"
-	TrackPrefixFormat  = "%02d - "
-	InvalidSeriesValue = "__INVALID_SERIES__"
+	LogFileName           = ".abook-org.log"
+	SeriesChoicesFileName = ".series-choices.json"
+	TestBookDirName       = "test_book"
+	MetadataFileName      = "metadata.json"
+	TestAudioFileName     = "audio.mp3"
+	TrackPrefixFormat     = "%02d - "
+	InvalidSeriesValue    = "__INVALID_SERIES__"
 )
 
 // OrganizerConfig contains all configuration parameters for an Organizer
@@ -162,13 +163,15 @@ type Organizer struct {
 	logEntries       []LogEntry
 	fileOps          *FileOps
 	layoutCalculator *LayoutCalculator
+	seriesChoices    map[string]string // book title → chosen series, persisted to disk
 }
 
 // NewOrganizer creates a new Organizer with the provided configuration
 func NewOrganizer(config *OrganizerConfig) *Organizer {
 	org := &Organizer{
-		config:  *config,
-		fileOps: NewFileOps(config.DryRun),
+		config:        *config,
+		fileOps:       NewFileOps(config.DryRun),
+		seriesChoices: make(map[string]string),
 	}
 
 	org.layoutCalculator = NewLayoutCalculator(config, org.SanitizePath)
@@ -231,6 +234,8 @@ func (o *Organizer) Execute() error {
 		// Process the single file
 		return o.OrganizeSingleFile(o.config.BaseDir, nil)
 	}
+
+	o.loadSeriesChoices()
 
 	if o.config.Undo {
 		color.Yellow("↩️  Undoing previous operations...")

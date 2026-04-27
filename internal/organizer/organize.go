@@ -747,7 +747,21 @@ func (o *Organizer) resolveSeriesIfMultiple(metadata *Metadata) {
 	if len(entries) <= 1 {
 		return
 	}
+
+	// Use a saved choice if it's still valid for this book's series list.
+	if cached, ok := o.seriesChoices[metadata.Title]; ok {
+		for _, e := range entries {
+			if e == cached {
+				metadata.Series = []string{cached}
+				return
+			}
+		}
+		// Cached entry no longer in the list — fall through to re-prompt.
+	}
+
 	chosen := o.PromptForSeriesSelection(metadata.Title, entries)
+	o.seriesChoices[metadata.Title] = chosen
+	o.saveSeriesChoices()
 	metadata.Series = []string{chosen}
 }
 
