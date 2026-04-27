@@ -92,8 +92,10 @@ func (m *Metadata) GetFirstAuthor(defaultValue string) string {
 // GetFullValidSeries returns the first valid series name with series number intact
 // Sorts the series array to ensure consistent series choice
 func (m *Metadata) GetFullValidSeries() string {
-	if len(m.Series) > 0 && m.Series[0] != "" && m.Series[0] != InvalidSeriesValue {
-		return m.Series[0]
+	for _, s := range m.Series {
+		if s != "" && s != InvalidSeriesValue {
+			return s
+		}
 	}
 	return ""
 }

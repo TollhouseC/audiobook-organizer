@@ -702,7 +702,7 @@ func TestSeriesOnlyLayouts(t *testing.T) {
 			expected: filepath.Join("testbase", "Mistborn", "The Hero of Ages"),
 		},
 		{
-			name:   "series-title with multiple series (sorted)",
+			name:   "series-title with multiple series (first wins)",
 			layout: "series-title",
 			metadata: Metadata{
 				Title:   "Test Book",
@@ -710,7 +710,7 @@ func TestSeriesOnlyLayouts(t *testing.T) {
 				Series:  []string{"Z Series", "A Series"},
 				RawData: map[string]interface{}{},
 			},
-			expected: filepath.Join("testbase", "A Series", "Test Book"),
+			expected: filepath.Join("testbase", "Z Series", "Test Book"),
 		},
 		{
 			name:   "series-title-number with decimal series_index",

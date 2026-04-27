@@ -18,11 +18,11 @@ func TestMetadataGetFullValidSeries(t *testing.T) {
 			want: "Mistborn #1",
 		},
 		{
-			name: "multiple_series_sorted_alphabetically",
+			name: "multiple_series_first_wins",
 			metadata: Metadata{
 				Series: []string{"Z Series #3", "A Series #1", "M Series #2"},
 			},
-			want: "A Series #1",
+			want: "Z Series #3",
 		},
 		{
 			name: "empty_series",
@@ -64,7 +64,7 @@ func TestMetadataGetFullValidSeries(t *testing.T) {
 			metadata: Metadata{
 				Series: []string{"Series B #2", "Series A #1", "Series C #3"},
 			},
-			want: "Series A #1",
+			want: "Series B #2",
 		},
 	}
 
@@ -99,11 +99,11 @@ func TestMetadataGetValidSeries(t *testing.T) {
 			want: "The Expanse",
 		},
 		{
-			name: "multiple_series_sorted_and_cleaned",
+			name: "multiple_series_first_wins_cleaned",
 			metadata: Metadata{
 				Series: []string{"Z Series #3", "A Series #1"},
 			},
-			want: "A Series",
+			want: "Z Series",
 		},
 		{
 			name: "empty_series",
