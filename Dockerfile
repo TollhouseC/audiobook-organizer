@@ -26,6 +26,9 @@ COPY --from=builder /app/audiobook-organizer /usr/local/bin/audiobook-organizer
 RUN echo 'umask 0000' > /etc/umask.sh
 ENV ENV="/etc/umask.sh"
 
+# Quick-reference for running the organizer from the container console
+RUN printf 'audiobook-organizer --replace-special "" --layout=author-series-title --rename-files --dry-run\n' > /help.txt
+
 # Keep the container alive. Run via sh so umask 0000 is applied to
 # the process before tail starts, ensuring child processes inherit it.
 CMD ["sh", "-c", "umask 0000 && exec tail -f /dev/null"]
