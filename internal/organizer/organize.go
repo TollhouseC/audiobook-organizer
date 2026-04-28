@@ -404,13 +404,19 @@ func (o *Organizer) anyAudioFilesNeedRename(dir string, metadata *Metadata) bool
 	if err != nil {
 		return false
 	}
+	audioFileCount := 0
+	for _, entry := range entries {
+		if !entry.IsDir() && IsSupportedAudioFile(strings.ToLower(filepath.Ext(entry.Name()))) {
+			audioFileCount++
+		}
+	}
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
 		}
 		ext := strings.ToLower(filepath.Ext(entry.Name()))
 		if IsSupportedAudioFile(ext) {
-			if entry.Name() != o.calculateFileTargetName(entry.Name(), metadata) {
+			if entry.Name() != o.calculateFileTargetName(entry.Name(), metadata, audioFileCount) {
 				return true
 			}
 		}
@@ -1054,13 +1060,20 @@ func (o *Organizer) getDirectoryMetadata(sourcePath string) *Metadata {
 func (o *Organizer) processDirectoryFiles(entries []os.DirEntry, sourcePath, targetPath string, dirMetadata *Metadata) ([]string, error) {
 	var fileNames []string
 
+	audioFileCount := 0
+	for _, entry := range entries {
+		if !entry.IsDir() && IsSupportedAudioFile(strings.ToLower(filepath.Ext(entry.Name()))) {
+			audioFileCount++
+		}
+	}
+
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue // Skip subdirectories
 		}
 
 		sourceName := filepath.Join(sourcePath, entry.Name())
-		targetName := o.calculateFileTargetName(entry.Name(), dirMetadata)
+		targetName := o.calculateFileTargetName(entry.Name(), dirMetadata, audioFileCount)
 		targetFullPath := filepath.Join(targetPath, targetName)
 		fileNames = append(fileNames, targetName)
 
@@ -1109,13 +1122,17 @@ func extractPartNumber(fileBase string) int {
 // calculateFileTargetName determines the target filename, adding track prefixes when appropriate.
 // When RenameFiles is enabled, audio files are renamed to the sanitized metadata title;
 // non-audio files (cover art, metadata.json, etc.) keep their original names.
-func (o *Organizer) calculateFileTargetName(fileName string, dirMetadata *Metadata) string {
+// audioFileCount is the total number of audio files in the directory; part-number extraction
+// is only applied when there are multiple audio files to avoid false matches on "Book 1" etc.
+func (o *Organizer) calculateFileTargetName(fileName string, dirMetadata *Metadata, audioFileCount int) string {
 	ext := strings.ToLower(filepath.Ext(fileName))
 	if o.config.RenameFiles && dirMetadata != nil && dirMetadata.Title != "" && IsSupportedAudioFile(ext) {
 		base := o.SanitizePath(dirMetadata.Title)
 		fileBase := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-		if partNum := extractPartNumber(fileBase); partNum > 0 {
-			return fmt.Sprintf("%s - %02d%s", base, partNum, filepath.Ext(fileName))
+		if audioFileCount > 1 {
+			if partNum := extractPartNumber(fileBase); partNum > 0 {
+				return fmt.Sprintf("%s - %02d%s", base, partNum, filepath.Ext(fileName))
+			}
 		}
 		if dirMetadata.TrackNumber > 0 {
 			return fmt.Sprintf(TrackPrefixFormat, dirMetadata.TrackNumber) + base + filepath.Ext(fileName)
