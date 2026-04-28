@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -1089,17 +1090,37 @@ func (o *Organizer) processDirectoryFiles(entries []os.DirEntry, sourcePath, tar
 	return fileNames, nil
 }
 
+// extractPartNumber returns the trailing part number from a filename base (no extension),
+// e.g. "Ender in Exile - 2" → 2, "Title_03" → 3. Returns 0 if none found.
+var partNumberRe = regexp.MustCompile(`[-_\s]+(\d+)\s*$`)
+
+func extractPartNumber(fileBase string) int {
+	m := partNumberRe.FindStringSubmatch(fileBase)
+	if m == nil {
+		return 0
+	}
+	n, err := strconv.Atoi(m[1])
+	if err != nil {
+		return 0
+	}
+	return n
+}
+
 // calculateFileTargetName determines the target filename, adding track prefixes when appropriate.
 // When RenameFiles is enabled, audio files are renamed to the sanitized metadata title;
 // non-audio files (cover art, metadata.json, etc.) keep their original names.
 func (o *Organizer) calculateFileTargetName(fileName string, dirMetadata *Metadata) string {
 	ext := strings.ToLower(filepath.Ext(fileName))
 	if o.config.RenameFiles && dirMetadata != nil && dirMetadata.Title != "" && IsSupportedAudioFile(ext) {
-		base := o.SanitizePath(dirMetadata.Title) + filepath.Ext(fileName)
-		if dirMetadata.TrackNumber > 0 {
-			return fmt.Sprintf(TrackPrefixFormat, dirMetadata.TrackNumber) + base
+		base := o.SanitizePath(dirMetadata.Title)
+		fileBase := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+		if partNum := extractPartNumber(fileBase); partNum > 0 {
+			return fmt.Sprintf("%s - %02d%s", base, partNum, filepath.Ext(fileName))
 		}
-		return base
+		if dirMetadata.TrackNumber > 0 {
+			return fmt.Sprintf(TrackPrefixFormat, dirMetadata.TrackNumber) + base + filepath.Ext(fileName)
+		}
+		return base + filepath.Ext(fileName)
 	}
 
 	normalizer := NewFilenameNormalizer()
