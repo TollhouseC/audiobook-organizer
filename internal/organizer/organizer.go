@@ -57,7 +57,7 @@ func (f *FileOps) CreateDirIfNotExists(dir string) error {
 	if f.dryRun {
 		return nil
 	}
-	return os.MkdirAll(dir, 0755)
+	return os.MkdirAll(dir, 0777)
 }
 
 // FileExists checks if a file exists on the filesystem
@@ -208,7 +208,7 @@ func (o *Organizer) GetLogPath() string {
 // initCurrentLogPath creates the config directory and sets a timestamped log path for this run.
 func (o *Organizer) initCurrentLogPath() {
 	configDir := o.getConfigDir()
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0777); err != nil {
 		PrintYellow("⚠️  Warning: couldn't create config directory %s: %v", configDir, err)
 	}
 	timestamp := time.Now().Format("20060102-150405")
