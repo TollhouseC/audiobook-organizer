@@ -21,5 +21,11 @@ FROM --platform=$TARGETPLATFORM alpine:latest
 # Put the binary on PATH so it can be called by name from the console
 COPY --from=builder /app/audiobook-organizer /usr/local/bin/audiobook-organizer
 
-# Keep the container alive so Unraid's Console button works
-CMD ["tail", "-f", "/dev/null"]
+# Apply umask 000 to every sh session, including docker exec consoles.
+# Alpine's sh (busybox ash) sources $ENV on startup for interactive shells.
+RUN echo 'umask 0000' > /etc/umask.sh
+ENV ENV="/etc/umask.sh"
+
+# Keep the container alive. Run via sh so umask 0000 is applied to
+# the process before tail starts, ensuring child processes inherit it.
+CMD ["sh", "-c", "umask 0000 && exec tail -f /dev/null"]
